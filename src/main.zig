@@ -1,5 +1,3 @@
-// raylib-zig (c) Nikolas Wipper 2023
-
 const rl = @import("raylib");
 const std = @import("std");
 const raygui = @import("raygui");
