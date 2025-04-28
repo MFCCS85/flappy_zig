@@ -14,6 +14,12 @@ pub fn main() anyerror!void {
         .velocity = rl.Vector2{ .x = 0.0, .y = 0.0 },
     };
 
+    var pipe = Pipe{
+        .gap_size = 90,
+        .x = 400,
+        .top_pipe_y = 225,
+    };
+
     rl.initWindow(screenWidth, screenHeight, "Ziggy Bird");
     defer rl.closeWindow();
 
@@ -40,6 +46,7 @@ pub fn main() anyerror!void {
         defer rl.endDrawing();
 
         player.draw();
+        pipe.draw();
 
         rl.clearBackground(.white);
         //----------------------------------------------------------------------------------
@@ -72,4 +79,9 @@ const Pipe = struct {
     gap_size: f32,
     x: f32,
     top_pipe_y: f32,
+
+    pub fn draw(self: *Pipe) void {
+        rl.drawRectangleV(rl.Vector2{ .x = self.x, .y = 0 }, rl.Vector2{ .x = 20, .y = self.top_pipe_y }, .sky_blue);
+        rl.drawRectangleV(rl.Vector2{ .x = self.x, .y = self.top_pipe_y + self.gap_size }, rl.Vector2{ .x = 20, .y = 450 - self.top_pipe_y }, .sky_blue);
+    }
 };
