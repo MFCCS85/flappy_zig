@@ -1,6 +1,5 @@
 const rl = @import("raylib");
 const std = @import("std");
-const raygui = @import("raygui");
 
 pub fn main() anyerror!void {
     // Initialization
@@ -67,6 +66,8 @@ pub fn main() anyerror!void {
         pipe3.draw();
 
         try show_fps();
+        rl.drawText("oi ana", 400, 225, 40, .red);
+
         rl.clearBackground(.white);
         //----------------------------------------------------------------------------------
     }
