@@ -1,40 +1,42 @@
 const rl = @import("raylib");
 const std = @import("std");
 
+const screenWidth = 800.0;
+const screenHeight = 450.0;
+
 pub fn main() anyerror!void {
     // Initialization
     //--------------------------------------------------------------------------------------
-    const screenWidth = 800;
-    const screenHeight = 450;
-    const flags = rl.ConfigFlags{ .vsync_hint = true };
+
+    const flags = rl.ConfigFlags{ .vsync_hint = false };
     rl.setWindowState(flags);
 
+    var buffer: [100]u8 = undefined;
+    const message = try std.fmt.bufPrintZ(&buffer, "Hello World", .{});
+
     var player = Player{
-        .position = rl.Vector2{ .x = 100, .y = 200 },
+        .position = rl.Vector2{ .x = screenWidth / 5, .y = screenHeight / 2 },
         .acceleration = rl.Vector2{ .x = 0.0, .y = 0.0 },
         .velocity = rl.Vector2{ .x = 0.0, .y = 0.0 },
     };
 
     var pipe = Pipe{
-        .gap_size = 100,
-        .x = 300,
-        .top_pipe_y = 225,
+        .x = screenWidth / 4.0,
     };
     var pipe2 = Pipe{
-        .gap_size = 100,
-        .x = 600,
-        .top_pipe_y = 225,
+        .x = (screenWidth / 4.0) + pipe.x,
     };
     var pipe3 = Pipe{
-        .gap_size = 100,
-        .x = 800,
-        .top_pipe_y = 225,
+        .x = (screenWidth / 4.0) + pipe2.x,
+    };
+    var pipe4 = Pipe{
+        .x = (screenWidth / 4.0) + pipe3.x,
     };
 
-    rl.initWindow(screenWidth, screenHeight, "Ziggy Bird");
+    rl.initWindow(@as(i32, screenWidth), @as(i32, screenHeight), "Ziggy Bird");
     defer rl.closeWindow();
 
-    rl.setTargetFPS(60);
+    rl.setTargetFPS(20);
 
     var delta = rl.getFrameTime();
 
@@ -42,7 +44,7 @@ pub fn main() anyerror!void {
     while (!rl.windowShouldClose()) {
         // Controls
         if (rl.isKeyPressed(.space)) {
-            player.acceleration.y = 0.9;
+            player.acceleration.y = 20 * delta;
             player.velocity.y = -300;
         }
 
@@ -53,6 +55,7 @@ pub fn main() anyerror!void {
         pipe.update_position(delta);
         pipe2.update_position(delta);
         pipe3.update_position(delta);
+        pipe4.update_position(delta);
 
         // Draw
         //----------------------------------------------------------------------------------
@@ -64,9 +67,10 @@ pub fn main() anyerror!void {
         pipe.draw();
         pipe2.draw();
         pipe3.draw();
+        pipe4.draw();
 
         try show_fps();
-        rl.drawText("oi ana", 400, 225, 40, .red);
+        rl.drawText(message, 400, 225, 40, .red);
 
         rl.clearBackground(.white);
         //----------------------------------------------------------------------------------
@@ -77,9 +81,10 @@ const Player = struct {
     position: rl.Vector2,
     acceleration: rl.Vector2,
     velocity: rl.Vector2,
+    size: f32 = 20,
 
     pub fn update_position(self: *Player, delta: f32) void {
-        self.acceleration.y += 0.7;
+        self.acceleration.y += 20 * delta;
 
         self.velocity.x += self.acceleration.x;
         self.velocity.y += self.acceleration.y;
@@ -87,18 +92,22 @@ const Player = struct {
         self.position.x += self.velocity.x * delta;
         self.position.y += self.velocity.y * delta;
 
-        self.position.y = rl.math.clamp(self.position.y, 20, 430);
+        self.position.y = rl.math.clamp(
+            self.position.y,
+            self.size / 2,
+            screenHeight - self.size / 2,
+        );
     }
 
     pub fn draw(self: *Player) void {
-        rl.drawCircleV(self.position, 20, .sky_blue);
+        rl.drawCircleV(self.position, 10, .sky_blue);
     }
 };
 
 const Pipe = struct {
-    gap_size: f32,
+    gap_size: f32 = 80,
     x: f32,
-    top_pipe_y: f32,
+    top_pipe_y: f32 = screenHeight / 2,
 
     pub fn draw(self: *Pipe) void {
         rl.drawRectangleV(
@@ -109,7 +118,7 @@ const Pipe = struct {
 
         rl.drawRectangleV(
             rl.Vector2{ .x = self.x, .y = self.top_pipe_y + self.gap_size },
-            rl.Vector2{ .x = 20, .y = 450 - self.top_pipe_y },
+            rl.Vector2{ .x = 20, .y = screenHeight - self.top_pipe_y },
             .sky_blue,
         );
     }
@@ -117,8 +126,8 @@ const Pipe = struct {
     pub fn update_position(self: *Pipe, delta: f32) void {
         self.x -= 200.0 * delta;
         if (self.x <= 0) {
-            self.x = 800;
-            self.top_pipe_y = 100 + std.crypto.random.float(f32) * (400 - 100);
+            self.x = screenWidth;
+            self.top_pipe_y = self.gap_size + std.crypto.random.float(f32) * ((screenHeight - 100) - self.gap_size);
         }
     }
 };
